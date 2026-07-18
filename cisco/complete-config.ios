@@ -1,0 +1,179 @@
+! ============================================================================
+! AAA/RADIUS Lab - Cisco Router Complete Configuration
+! ============================================================================
+! Hostname: R1
+! IP Address: 192.168.10.1/24
+! Domain: empresa.local
+! ============================================================================
+
+! ============================================================================
+! BASIC CONFIGURATION
+! ============================================================================
+
+hostname R1
+ip domain-name empresa.local
+no ip cef
+no service timestamps debug uptime
+no service timestamps log uptime
+no service password-encryption
+
+! ============================================================================
+! INTERFACES
+! ============================================================================
+
+interface GigabitEthernet0/0
+ description LAN Interface
+ ip address 192.168.10.1 255.255.255.0
+ ip access-group LAN-ACL in
+ no shutdown
+
+interface GigabitEthernet0/1
+ description WAN Interface
+ ip address dhcp
+ ip access-group WAN-ACL in
+ no shutdown
+
+! ============================================================================
+! ROUTING
+! ============================================================================
+
+ip route 0.0.0.0 0.0.0.0 192.168.10.1
+
+! ============================================================================
+! SSH CONFIGURATION
+! ============================================================================
+
+crypto key generate rsa modulus 2048
+ip ssh version 2
+ip ssh authentication retries 3
+ip ssh time-out 120
+
+! ============================================================================
+! LOCAL USERS (FALLBACK)
+! ============================================================================
+
+username cisco privilege 15 secret class
+username admin privilege 15 secret admin123!
+
+! ============================================================================
+! AAA CONFIGURATION
+! ============================================================================
+
+aaa new-model
+
+! RADIUS Server Configuration
+radius server NPS-SERVER
+ address ipv4 192.168.10.10 auth-port 1812 acct-port 1813
+ key R4d1usSecr3t2024!
+ timeout 5
+ retransmit 3
+
+! Authentication Methods
+aaa authentication login default group radius local
+aaa authentication login CONSOLE-NOAUTH none
+aaa authentication enable default group radius local
+
+! Authorization Methods
+aaa authorization exec default group radius local
+aaa authorization console
+
+! Accounting Methods
+aaa accounting exec default start-stop group radius
+aaa accounting connections default start-stop group radius
+aaa accounting system default start-stop group radius
+
+! ============================================================================
+! LINE CONFIGURATION - VTY (SSH/Telnet Access)
+! ============================================================================
+
+line vty 0 4
+ exec-timeout 15 0
+ access-class LAN-SSH in
+ transport input ssh
+ login authentication default
+ authorization exec default
+ accounting exec default
+ logging synchronous
+
+line vty 5 15
+ exec-timeout 15 0
+ access-class LAN-SSH in
+ transport input ssh
+ login authentication default
+ authorization exec default
+ accounting exec default
+ logging synchronous
+
+! ============================================================================
+! LINE CONFIGURATION - Console (LOCAL)
+! ============================================================================
+
+line con 0
+ exec-timeout 0 0
+ login authentication CONSOLE-NOAUTH
+ logging synchronous
+ speed 9600
+
+! ============================================================================
+! LOGGING & AUDITING
+! ============================================================================
+
+logging buffered 51200 debugging
+logging console warnings
+no logging monitor
+
+! Enable detailed AAA logging
+debug aaa authentication
+debug aaa authorization
+debug radius
+
+! ============================================================================
+! ACCESS CONTROL LISTS
+! ============================================================================
+
+ip access-list standard LAN-SSH
+ remark Permitir SSH desde LAN
+ permit 192.168.10.0 0.0.0.255
+ deny any
+
+ip access-list standard LAN-ACL
+ remark Permitir tráfico de LAN
+ permit 192.168.10.0 0.0.0.255
+ permit any any
+
+ip access-list standard WAN-ACL
+ remark Permitir tráfico de WAN
+ permit any
+
+! ============================================================================
+! SAVE CONFIGURATION
+! ============================================================================
+
+end
+
+! Execute the following command to save the configuration:
+! R1# write memory
+! R1# copy running-config startup-config
+
+! ============================================================================
+! VERIFICATION COMMANDS
+! ============================================================================
+
+! Verify SSH is active:
+! R1# show ip ssh
+
+! Verify AAA configuration:
+! R1# show aaa methods authentication
+! R1# show aaa methods authorization
+! R1# show aaa methods accounting
+
+! Verify RADIUS server:
+! R1# show radius statistics
+
+! Verify logs:
+! R1# show logging
+! R1# show aaa statistics
+
+! ============================================================================
+! END OF CONFIGURATION
+! ============================================================================

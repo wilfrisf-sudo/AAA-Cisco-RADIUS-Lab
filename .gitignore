@@ -1,0 +1,45 @@
+# GNS3 Artifacts
+*.gns3project
+*.lock
+project-files/
+
+# Windows Files
+Thumbs.db
+desktop.ini
+*.lnk
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Log Files
+*.log
+logs/
+
+# Temporary Files
+tmp/
+temp/
+*.tmp
+
+# OS Specific
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Certificates
+*.pfx
+*.cer
+*.key
+*.pem
+
+# Sensitive Data
+*.credentials
+*.secrets
